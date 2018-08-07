@@ -80,7 +80,7 @@ int main(int argc, char **argv)
 
 	memcpy(etherHeader->destHA, "\xFF\xFF\xFF\xFF\xFF\xFF", 6);
 	memcpy(etherHeader->sourceHA, localMacAddress, 6);
-	etherHeader->type = ntohs(ETHERTYPE_ARP);
+	etherHeader->type = htons(ETHERTYPE_ARP);
 
 	LPARP_HEADER arpHeader = (LPARP_HEADER)(packet + sizeof(ETHER_HEADER));
 	arpHeader->hdType = htons(1);
@@ -105,12 +105,12 @@ int main(int argc, char **argv)
 			continue;
 
 		LPETHER_HEADER capEtherHeader = (LPETHER_HEADER)cap_pk;
-		if (ntohs(capEtherHeader->type) != ETHERTYPE_ARP)
+		if (htons(capEtherHeader->type) != ETHERTYPE_ARP)
 			continue;
 
 		LPARP_HEADER capArpHeader = (LPARP_HEADER)(cap_pk + sizeof(ETHER_HEADER));
-		if (ntohs(capArpHeader->ptType) == ETHERTYPE_IP &&
-			ntohs(capArpHeader->operationCode) == ARP_Reply &&
+		if (htons(capArpHeader->ptType) == ETHERTYPE_IP &&
+			htons(capArpHeader->operationCode) == ARP_Reply &&
 			capArpHeader->senderIP == arpHeader->targetIP) // Check sender is equal to victim
 		{
 			printf("Sender IP :  %s\n", sender_ip);
@@ -139,5 +139,7 @@ int main(int argc, char **argv)
 	}
 
 	pcap_close(handle);
+	free(arpHeader->senderIP);
+	free(arpHeader->targetIP);
 	return 0;
 }
